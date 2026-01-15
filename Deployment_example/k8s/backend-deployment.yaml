@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: arainea-backend
+  namespace: arainea
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: arainea-backend
+  template:
+    metadata:
+      labels:
+        app: arainea-backend
+    spec:
+      initContainers:
+        - name: copy-images
+          image: pattaratos/arainea-backend:latest
+          command: [ "sh", "-c", "mkdir -p /Images && cp -r /app/Images/* /Images/ || true" ]
+          volumeMounts:
+            - name: images-volume
+              mountPath: /Images
+      containers:
+        - name: backend
+          image: pattaratos/arainea-backend:latest
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:postgresql://arainea-db:5432/pizza
+            - name: SPRING_DATASOURCE_USERNAME
+              value: pizzauser
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: pizzapass
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: images-volume
+              mountPath: /Images
+      volumes:
+        - name: images-volume
+          persistentVolumeClaim:
+            claimName: images-pvc   # reset เมื่อ pod ใหม่
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: arainea-backend
+  namespace: arainea
+spec:
+  selector:
+    app: arainea-backend
+  ports:
+    - port: 8080
+      targetPort: 8080
+  type: ClusterIP
