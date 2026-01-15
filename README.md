@@ -54,6 +54,7 @@ At the moment, the project does not support running via Docker / Docker Compose 
 To run the project, you must use PostgreSQL installed locally on your machine (local database) only.
 
 The project includes an init.sql file for creating the tables and inserting initial seed data.
+
 ---
 
 
